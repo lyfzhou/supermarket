@@ -1,0 +1,22 @@
+{% extends 'public/base.html' %}
+{% load static %}
+{% block header %}
+    <header data-am-widget="header" class="am-header am-header-default sq-head ">
+        <div class="am-header-left am-header-nav">
+            <a href="javascript:history.back()" class="">
+                <i class="am-icon-chevron-left"></i>
+            </a>
+        </div>
+        <h1 class="am-header-title">
+            <a href="" class="">完成支付</a>
+        </h1>
+    </header>
+    <div style="height: 49px;"></div>
+{% endblock %}
+
+{% block content %}
+    <ul class="order-detail">
+        <li><span>支付结果：</span>{{ message }}</li>
+    </ul>
+    <input type="button" class="login-btn" value="查看订单">
+{% endblock %}

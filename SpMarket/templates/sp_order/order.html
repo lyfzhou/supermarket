@@ -1,0 +1,123 @@
+{% extends 'public/base.html' %}
+{% load static %}
+
+
+{% block header %}
+<header data-am-widget="header" class="am-header am-header-default sq-head ">
+			<div class="am-header-left am-header-nav">
+				<a href="javascript:history.back()" class="">
+					<i class="am-icon-chevron-left"></i>
+				</a>
+			</div>
+			<h1 class="am-header-title">
+  	            <a href="" class="">确认订单</a>
+            </h1>
+	    </header>
+    <div style="height: 49px;"></div>
+{% endblock %}
+
+{% block content %}
+	    <h5 class="order-tit">收货人信息</h5>
+	    <div class="order-name">
+            <p class="order-tele">{{ order.username }}&nbsp;&nbsp;&nbsp;{{ order.phone }}</p>
+            <p class="order-add">{{ order.address }}</p>
+	    </div>
+        <div style="background: #eee; height: 10px;"></div>
+        <h5 class="order-tit">确认订单信息</h5>
+        <ul class="shopcart-list" style="padding-bottom: 0; margin-top: 0;">
+            {% for og in order.ordergoods_set.all %}
+                <li>
+                    <img src="{{ MEDIA_URL }}{{ og.goods_sku.logo }}" class="shop-pic" />
+                    <div class="order-mid">
+                        <div class="tit">{{ og.goods_sku.goods_spu.spu_name }}{{ og.goods_sku.sku_name }}</div>
+                        <div class="order-price">￥{{ og.price }} <i>X{{ og.count }}</i></div>
+                    </div>
+                </li>
+            {% endfor %}
+	    </ul>
+	    <ul class="order-infor">
+	    	<li class="order-infor-first">
+	    		<span>商品总计：</span>
+	    		<i>￥{{ order.order_amount }}</i>
+	    	</li>
+	    	<li class="order-infor-first">
+	    		<span>运输方式：{{ order.transport }}</span>
+	    		<i>运费：￥{{ order.transport_price }}</i>
+	    	</li>
+
+	    </ul>
+        <ul class="pay-style">
+	    	<li>
+		   	 	<img src="{% static 'images/zhi.png' %}" width="50" />
+		   	 	<span>
+		   	 		<p>支付宝</p>
+		   	 		<p class="descript">推荐有支付宝账号的用户使用</p>
+		   	 	</span>
+		   	 	<label class="am-radio-inline">
+				    <input type="radio" checked="checked" name="radio10" value="1" data-am-ucheck>
+				</label>
+	   	    </li>
+	   	    <li>
+		   	 	<img src="{% static 'images/wei.png' %}" width="50" />
+		   	 	<span>
+		   	 		<p>微信支付</p>
+		   	 		<p class="descript">推荐安装微信5.0及以上版本的使用</p>
+		   	 	</span>
+		   	 	<label class="am-radio-inline">
+				    <input type="radio" name="radio10" value="1" data-am-ucheck>
+				 </label>
+		   	</li>
+
+	    </ul>
+
+	    <div style="background: #eee; height: 10px;"></div>
+	    <textarea placeholder="备注说明" class="bz-infor"></textarea>
+	    <div style="background: #eee; height: 10px;"></div>
+	    <div style="height: 55px;"></div>
+	    <div class="shop-fix">
+	    	<div class="order-text">
+	    		应付总额：<span>￥{{ total }}</span>
+	    	</div>
+	    	<a href="{% url 'sp_order:发起支付' %}?order_sn={{ order.order_sn }}" class="js-btn">确认支付</a>
+	    </div>
+{% endblock %}
+<!--底部-->
+
+{% block footer %}
+ <div style="height: 55px;"></div>
+ <div data-am-widget="navbar" class="am-navbar am-cf am-navbar-default sq-foot am-no-layout" id="">
+      <ul class="am-navbar-nav am-cf am-avg-sm-5">
+          <li>
+            <a href="index.html" class="">
+                <span class="am-icon-home"></span>
+                <span class="am-navbar-label">首页</span>
+            </a>
+          </li>
+          <li>
+            <a href="message.html" class="">
+                <span class="am-icon-comments"></span>
+                <span class="am-navbar-label">动态</span>
+            </a>
+          </li>
+          <li>
+            <a href="shopcart.html" class="">
+                <span class="am-icon-shopping-cart"></span>
+                <span class="am-navbar-label">购物车</span>
+            </a>
+          </li>
+          <li>
+            <a href="allorder.html" class="">
+                <span class="am-icon-file-text"></span>
+                <span class="am-navbar-label">订单</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="member.html" class="curr">
+                <span class="am-icon-user"></span>
+                <span class="am-navbar-label">我的</span>
+            </a>
+          </li>
+      </ul>
+</div>
+{% endblock %}

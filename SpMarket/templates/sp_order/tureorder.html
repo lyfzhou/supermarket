@@ -1,0 +1,175 @@
+{% extends 'public/base.html' %}
+{% load static %}
+
+{% block header %}
+    <header data-am-widget="header" class="am-header am-header-default sq-head ">
+        <div class="am-header-left am-header-nav">
+            <a href="javascript:history.back()" class="">
+                <i class="am-icon-chevron-left"></i>
+            </a>
+        </div>
+        <h1 class="am-header-title">
+            <a href="" class="">确认订单</a>
+        </h1>
+    </header>
+    <div style="height: 49px;"></div>
+{% endblock %}
+
+{% block content %}
+
+    <form action="" method="post" id="order_form">
+    {% csrf_token %}
+
+    {% if address %}
+        <h5 class="order-tit">收货人信息</h5>
+        <input type="hidden" name="address_id" value="{{ address.pk }}">
+        <div class="order-name">
+            <a href="{% url 'sp_user:address' %}">
+                <p class="order-tele">{{ address.username }}&nbsp;&nbsp;&nbsp;{{ address.phone }}</p>
+                <p class="order-add">
+                    {{ address.hcity }}
+                    {{ address.hproper }}
+                    {{ address.harea }}
+                    {{ address.detail }}
+                </p>
+            </a>
+            <i class="am-icon-angle-right"></i>
+        </div>
+    {% else %}
+        <div class="add-address">
+            <a href="{% url 'sp_user:address_add' %}">+新建收货地址</a>
+            <i class="am-icon-angle-right"></i>
+        </div>
+    {% endif %}
+
+    <div style="background: #eee; height: 10px;"></div>
+    <ul class="shopcart-list" style="padding-bottom: 0;">
+        {% for goods in goodsskus %}
+            <li>
+                <input type="hidden" name="sku_id" value="{{ goods.pk }}">
+                <img src="{{ MEDIA_URL }}{{ goods.logo }}" class="shop-pic"/>
+                <div class="order-mid">
+                    <div class="tit">{{ goods.goods_spu.spu_name }}&emsp;{{ goods.sku_name }}</div>
+                    <div class="order-price">￥{{ goods.price }} <i>X{{ goods.count }}</i></div>
+                </div>
+            </li>
+        {% endfor %}
+
+    </ul>
+    <ul class="order-infor">
+        <li class="order-infor-first">
+            <span>商品总计：</span>
+            <i>￥<span id="goods_price">{{ total_price }}</span></i>
+        </li>
+        <li class="order-infor-first">
+            <span>运输方式：</span>
+            <i>
+                <select name="transport" id="transport">
+                    {% for tran in transports %}
+                        <option value="{{ tran.pk }}" price="{{ tran.price }}">{{ tran.name }}-￥<i>{{ tran.price }}</i></option>
+                    {% endfor %}
+                </select>
+            </i>
+        </li>
+    </ul>
+    </form>
+    <div style="background: #eee; height: 10px;"></div>
+    <textarea placeholder="备注说明" class="bz-infor"></textarea>
+    <div style="background: #eee; height: 10px;"></div>
+    <div style="height: 55px;"></div>
+    <div class="shop-fix">
+        <div class="order-text">
+            应付总额：<span>￥<i id="sum_price">0:00</i></span>
+        </div>
+        <a href="javascript:;" class="js-btn">确认订单</a>
+    </div>
+{% endblock %}
+
+
+{% block footer %}
+    <!--底部-->
+    <div style="height: 55px;"></div>
+    <div data-am-widget="navbar" class="am-navbar am-cf am-navbar-default sq-foot am-no-layout" id="">
+        <ul class="am-navbar-nav am-cf am-avg-sm-5">
+            <li>
+                <a href="index.html" class="">
+                    <span class="am-icon-home"></span>
+                    <span class="am-navbar-label">首页</span>
+                </a>
+            </li>
+            <li>
+                <a href="message.html" class="">
+                    <span class="am-icon-comments"></span>
+                    <span class="am-navbar-label">动态</span>
+                </a>
+            </li>
+            <li>
+                <a href="shopcart.html" class="">
+                    <span class="am-icon-shopping-cart"></span>
+                    <span class="am-navbar-label">购物车</span>
+                </a>
+            </li>
+            <li>
+                <a href="allorder.html" class="">
+                    <span class="am-icon-file-text"></span>
+                    <span class="am-navbar-label">订单</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="member.html" class="curr">
+                    <span class="am-icon-user"></span>
+                    <span class="am-navbar-label">我的</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+{% endblock %}
+
+
+{% block footer_js %}
+    <script>
+        $(function () {
+            //计算总价格
+            function totalPrice() {
+                var goods_price = $("#goods_price").text();
+                var trans_price = $("#transport").find(":selected").attr("price");
+                // js + 也是具有字符串拼接
+                var total = parseFloat(goods_price)+parseFloat(trans_price);
+                $("#sum_price").text(total.toFixed(2));
+            }
+            totalPrice();
+
+            //运输方式改变之后价格重新计算
+            $("#transport").on("change",function () {
+                totalPrice();
+            });
+
+
+            //确认订单绑定点击事件,通过ajax提交订单数据
+            $(".js-btn").on("click",function () {
+               //准备数据
+                var data = $("#order_form").serialize();
+                //判断收货地址必须有, 运输方式必须选择
+
+                {#console.debug(data);#}
+               //发送ajax
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'sp_order:确认订单' %}",
+                    data:data,
+                    dataType:"json",
+                    success:function (data) {
+                        if(data.code == 0){
+                            //跳转到订单确认页面
+                            location.href = "{% url 'sp_order:确认支付' %}?order_sn="+data.order_sn;
+                        }else {
+                            alert("订单创建失败!");
+                        }
+                    }
+                })
+            });
+        })
+    </script>
+{% endblock %}
+ 

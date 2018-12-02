@@ -1,0 +1,89 @@
+{% extends 'public/base.html' %}
+{% load static %}
+{% load highlight %}
+{% block meta_css %}
+    <style>
+        .shop-list-mid .tit a {
+            color: #909090;
+            font-size: 1.4rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            white-space: normal;
+            text-overflow: ellipsis;
+        }
+
+        .list-price {
+            background: url({% if order == 2 %}{% static 'images/order-bot.png' %}{% elif order == 3 %}{% static 'images/order-top.png' %}{% else %}{% static 'images/order.png' %}{% endif %}) no-repeat right center;
+            padding-right: 20px;
+            font-style: normal;
+        }
+
+        .hightline_self{
+            color: red;
+        }
+    </style>
+{% endblock %}
+
+{% block header %}
+    <header data-am-widget="header" class="am-header am-header-default sq-head ">
+        <div class="am-header-left am-header-nav">
+            <a href="javascript:history.back()" class="">
+                <i class="am-icon-chevron-left"></i>
+            </a>
+        </div>
+        <form action="/search/" method="get">
+            <div class="cate-search">
+                <input type="text" name="q" value="{{ query }}" class="cate-input" placeholder="请输入您要的搜索的产品关键词"/>
+                <input type="submit" value="" class="cate-btn"/>
+            </div>
+        </form>
+
+    </header>
+{% endblock %}
+
+{% block content %}
+
+    <div class="content-list">
+        <ul class="list-pro">
+            {% for result in page %}
+                <li>
+                    <a href="{% url 'sp_goods:详情' result.object.pk %}"><img
+                            src="{{ MEDIA_URL }}{{ result.object.logo }}"
+                            class="list-pic"/></a>
+                    <div class="shop-list-mid" style="width: 65%;">
+                        <div class="tit">
+                            <a href="{% url 'sp_goods:详情' result.object.pk %}">
+                                {% highlight result.object.goods_spu.spu_name with query css_class "hightline_self" html_tag "span" %}&emsp;
+{#                                {{ result.object.sku_name }}#}
+                                {% highlight result.object.sku_name with query css_class "hightline_self" html_tag "span" %}
+                            </a>
+                        </div>
+                        <div class="am-gallery-desc">￥{{ result.object.price }}</div>
+                        <p>销量：{{ result.object.sale_num }}{{ result.object.unit }}</p>
+                    </div>
+                    <div class="list-cart">
+                        <div class="d-stock ">
+                            <a class="decrease">-</a>
+                            <input id="num" readonly="" class="text_box" name="" type="text" value="0">
+                            <a class="increase">+</a>
+                        </div>
+                    </div>
+                </li>
+
+            {% empty %}
+                <li>该分类下没有商品!~~~</li>
+            {% endfor %}
+        </ul>
+
+        {% if page.has_previous %}
+            <a href="?q={{ query }}&page={{ page.previous_page_number }}" class="am-btn">上一页</a>
+        {% endif %}
+        {% if page.has_next %}
+            <a href="?q={{ query }}&page={{ page.next_page_number }}" class="am-btn">下一页</a>
+        {% endif %}
+
+    </div>
+{% endblock %}
+

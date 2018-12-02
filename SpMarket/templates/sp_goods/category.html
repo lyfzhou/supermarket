@@ -1,0 +1,219 @@
+{% extends 'public/base.html' %}
+{% load static %}
+
+{% block meta_css %}
+    <style>
+        .shop-list-mid .tit a {
+            color: #909090;
+            font-size: 1.4rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            white-space: normal;
+            text-overflow: ellipsis;
+        }
+
+        .list-price {
+            background: url({% if order == 2 %}{% static 'images/order-bot.png' %}{% elif order == 3 %}{% static 'images/order-top.png' %}{% else %}{% static 'images/order.png' %}{% endif %}) no-repeat right center;
+            padding-right: 20px;
+            font-style: normal;
+        }
+    </style>
+{% endblock %}
+
+{% block header %}
+    <header data-am-widget="header" class="am-header am-header-default sq-head ">
+        <div class="am-header-left am-header-nav">
+            <a href="javascript:history.back()" class="">
+                <i class="am-icon-chevron-left"></i>
+            </a>
+        </div>
+        <form action="/search/" method="get">
+            <div class="cate-search">
+                <input type="text" name="q" class="cate-input" placeholder="请输入您要的搜索的产品关键词"/>
+                <input type="submit" value="" class="cate-btn"/>
+            </div>
+        </form>
+
+    </header>
+    <div style="height: 49px;"></div>
+{% endblock %}
+
+{% block content %}
+    <ul class="list-nav">
+        <li {% if order == 0 %}class="current"{% endif %}><a href="{% url 'sp_goods:分类' cate_id 0 %}">综合</a></li>
+        <li {% if order == 1 %}class="current"{% endif %}><a href="{% url 'sp_goods:分类' cate_id 1 %}">销量</a></li>
+        <li {% if order == 2 %}class="current"{% endif %}><a href="{% url 'sp_goods:分类' cate_id 2 %}"><i
+                class="list-price">价格</i></a></li>
+        <li {% if order == 4 %}class="current"{% endif %}><a href="{% url 'sp_goods:分类' cate_id 4 %}">新品</a></li>
+    </ul>
+    <div class="content-list">
+        <div class="list-left">
+            {% for category in categorys %}
+                <li {% if cate_id == category.pk %}class="current"{% endif %}>
+                    <a href="{% url 'sp_goods:分类' category.pk order %}">{{ category.cate_name }}</a>
+                </li>
+            {% endfor %}
+        </div>
+
+
+        <div class="list-right">
+            <ul class="list-pro">
+                {% for goods in goodsSkus %}
+                    <li>
+                        <a href="{% url 'sp_goods:详情' goods.pk %}"><img src="{{ MEDIA_URL }}{{ goods.logo }}"
+                                                                        class="list-pic"/></a>
+                        <div class="shop-list-mid" style="width: 65%;">
+                            <div class="tit">
+                                <a href="{% url 'sp_goods:详情' goods.pk %}">
+                                    {{ goods.goods_spu.spu_name }}&emsp;{{ goods.sku_name }}
+                                </a>
+                            </div>
+                            <div class="am-gallery-desc">￥{{ goods.price }}</div>
+                            <p>销量：{{ goods.sale_num }}{{ goods.unit }}</p>
+                        </div>
+                        <div class="list-cart">
+                            <div class="d-stock ">
+                                <a class="decrease">-</a>
+                                <input id="num" sku_id="{{ goods.pk }}" readonly="" class="text_box" name="" type="text" value="0">
+                                <a class="increase">+</a>
+                            </div>
+                        </div>
+                    </li>
+
+                {% empty %}
+                    <li>该分类下没有商品!~~~</li>
+                {% endfor %}
+            </ul>
+            {% if goodsSkus.has_previous %}
+                <a href="?p={{ goodsSkus.previous_page_number }}" class="am-btn">上一页</a>
+            {% endif %}
+            {% if goodsSkus.has_next %}
+                <a href="?p={{ goodsSkus.next_page_number }}" class="am-btn">下一页</a>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!--底部-->
+    <div style="height: 55px;"></div>
+    <div class="fix-bot">
+        <a href="{% url 'sp_cart:index' %}"><div class="fix-bot-cart"><i id="cart_count">{{ cart_count }}</i></div></a>
+        <a href="tureorder.html" class="list-js">去结算</a>
+        <a href="tureorder.html" class="list-jsk">一键快购</a>
+        <!--<div class="js-text">
+           <p><b>￥217.80</b></p>
+           <p class="js-car">购物满50元免运费</p>
+     </div>-->
+    </div>
+
+{% endblock %}
+
+
+
+{% block footer_js %}
+    <script>
+
+        $(function () {
+            //改变价格上的url地址
+            if ("{{ order }}" == 2) {
+                $(".list-price").parent("a").attr('href', "{% url 'sp_goods:分类' cate_id 3 %}")
+            } else if ("{{ order }}" == 3) {
+                $(".list-price").parent("a").attr('href', "{% url 'sp_goods:分类' cate_id 2 %}")
+            }
+        });
+
+        //购物数量加减
+        $(function () {
+            $('.increase').click(function () {
+                var self = $(this);
+                var current_num = parseInt(self.siblings('input').val());
+                current_num += 1;
+
+                //发送ajax到后台 添加购物车数据
+                //收集数据 count sku_id
+                var count = 1;
+                var sku_id = self.siblings('input').attr('sku_id');
+                //发送ajax
+                $.ajax({
+                    type:'post',
+                    url:'{% url "sp_cart:addCart" %}',
+                    data:{
+                        "count":count,
+                        "sku_id":sku_id,
+                        "csrfmiddlewaretoken":"{{ csrf_token }}",
+                    },
+                    dataType:"json",
+                    success:function (data) {
+
+                        if(data.code == 0){
+                            if (current_num > 0) {
+                                self.siblings(".decrease").fadeIn();
+                                self.siblings(".text_box").fadeIn();
+                            }
+                            self.siblings('input').val(current_num);
+
+                            //更新购物车中总数量的显示
+                            $("#cart_count").text(data.cart_count);
+
+                        }else if (data.code == 1){
+                            //跳转到登陆页面
+                            var flag = confirm("没有登陆,是否立即登陆?");
+                            if(flag){
+                               location.href = "{% url 'sp_user:login' %}?next={% url 'sp_goods:分类' cate_id order %}"
+                            }
+                        }
+                    }
+                });
+
+
+
+            });
+            $('.decrease').click(function () {
+                var self = $(this);
+                var current_num = parseInt(self.siblings('input').val());
+                if (current_num > 0) {
+
+                     //发送ajax到后台 添加购物车数据
+                    //收集数据 count sku_id
+                    var count = -1;
+                    var sku_id = self.siblings('input').attr('sku_id');
+                    //发送ajax
+                    $.ajax({
+                        type:'post',
+                        url:'{% url "sp_cart:addCart" %}',
+                        data:{
+                            "count":count,
+                            "sku_id":sku_id,
+                            "csrfmiddlewaretoken":"{{ csrf_token }}",
+                        },
+                        dataType:"json",
+                        success:function (data) {
+                            if(data.code == 0){
+                                current_num -= 1;
+                                if (current_num < 1) {
+                                    self.fadeOut();
+                                    self.siblings(".text_box").fadeOut();
+                                }
+                                self.siblings('input').val(current_num);
+
+                                //更新购物车中总数量的显示
+                                $("#cart_count").text(data.cart_count);
+
+                            }else if (data.code == 1){
+                                //跳转到登陆页面
+                                var flag = confirm("没有登陆,是否立即登陆?");
+                                if(flag){
+                                   location.href = "{% url 'sp_user:login' %}?next={% url 'sp_goods:分类' cate_id order %}"
+                                }
+                            }
+                        }
+                    });
+
+                }
+            });
+        })
+
+    </script>
+{% endblock %}
